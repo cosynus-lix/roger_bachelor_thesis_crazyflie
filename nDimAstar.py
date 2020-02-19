@@ -35,7 +35,7 @@ def comp(a, b):
 def astar(start, goal, array, bounds):
     start = tuple(start)
     goal = tuple(goal)
-    array = np.matrix(array)
+    array = np.array(array)
     
     if not(inBounds(start, bounds)):                
         print("Start point out of bounds")
@@ -72,8 +72,8 @@ def astar(start, goal, array, bounds):
         for neighbor in neighbours(current):
             if not(inBounds(neighbor, bounds)):                
                 continue
-
-            if array.item(neighbor) == 1:
+                
+            if array[neighbor[::-1]] == 1:
                 continue
                 
             neighbor_gscore = gscore[current] + norm(current, neighbor)
