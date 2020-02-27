@@ -1,6 +1,3 @@
-
-###################################### NOT FINISHED ######################################
-
 #!/usr/bin/env python
 
 import sys
@@ -13,28 +10,6 @@ import math
 
 from paretoConstPath import findPaths
 from helpers import *
-
-# Cube around the movement of the crazyflie
-max_x = 1.0
-max_y = 1.0
-max_z = 1.6
-
-# Position in Z for each planar movements
-z_plan = 1.4
-
-############################ Define some trajectories ####################################
-# Define a circular trajectory. Each point returned should be send at the frequency freq
-def circle_trajectory(freq, duration,r):
-	x = list()
-	y = list()
-	t = list()
-	nb_point = freq * duration
-	for i in range(nb_point):
-		t0 = 2 * math.pi * (1.0/freq)  * i
-		x.append(r * math.cos(t0/duration))
-		y.append(r * math.sin(t0/duration))
-		t.append((1.0/freq)  * i)
-	return (t,x,y)
 
 #########################################################################################
 
