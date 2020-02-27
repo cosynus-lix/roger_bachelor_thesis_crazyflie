@@ -11,6 +11,8 @@ from crazyflie_driver.msg import Position
 
 import math
 
+from paretoConstPath import findPaths
+
 # Cube around the movement of the crazyflie
 max_x = 1.0
 max_y = 1.0
@@ -76,20 +78,28 @@ if __name__ == '__main__':
         pubSetpointPos.publish(next_pos)
         rate.sleep()
 
-    start = (0, 0, 1)
-    goal = (1, 1, 1)
 
-    nmap = [[[0], [0]]]
-    bounds = [0,len(nmap), 0,len(nmap[0]), 0,len(nmap[0][0])]
-    d = Drone(start, end, nmap, bounds)
+    nmap = [[[0,0,0],
+             [0,0,0],
+             [0,0,0],
+             [0,0,0],
+             [0,0,0],
+             [0,0,0]]]
 
-    x, y, z = start
-    gx, gy, gz = goal
-        
+    starts = [(0,0,0), (2,5,0)]
+    goals = [(0,5,0),(1,0,0)]
+
+    paths = findPaths(starts, goals, nmap)
     
+    bounds = (len(map[0][0]), len(map[0]), len(map))
 
+    changeBasisConstants = setConstants(bounds, (3,6,3))
+
+    x, y, z = changeBasis(starts[0])
+    gx, gy, gz = (goals[0])
+    
     # first go to the first point of the trajectory
-    while ((x[0]-current_position.x)**2 + (y[0] - current_position.y)**2 + (z[0] - current_position.z)**2) > 1e-2 : # 10cm 
+    while ((x-current_position.x)**2 + (y - current_position.y)**2 + (z - current_position.z)**2) > 1e-2 : # 10cm 
         next_pos.x = x
         next_pos.y = y
         next_pos.z = z
@@ -99,11 +109,14 @@ if __name__ == '__main__':
         pubSetpointPos.publish(next_pos)
         rate.sleep()
 
+    i = 0
     # Then go to goal
     while ((gx-current_position.x)**2 + (gy - current_position.y)**2 + (gz - current_position.z)**2) > 1e-2 : # 10cm 
-        if d.update(0.1):
-            break
-        x, y, z = d.pos
+        i+=1
+        if i<len(paths[0]):
+            x, y, z = paths[0][i][::-1]
+        else:
+            x, y, z = goals[0]
         next_pos.x = x
         next_pos.y = y
         next_pos.z = z
