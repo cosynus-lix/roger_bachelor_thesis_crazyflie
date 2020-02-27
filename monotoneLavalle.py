@@ -10,7 +10,7 @@ def comp(a, b):
 
 def monotoneLavalle(start, end, configSpace, lengths, possiblePath):
     for point in possiblePath:
-        point = tuple([int(s) for s in point])
+        point = tuple([int(s) for s in point[::-1]])
         configSpace[point] = 2
 
     addCriticals(configSpace, lengths)
@@ -22,20 +22,20 @@ def monotoneLavalle(start, end, configSpace, lengths, possiblePath):
         i, j = start
         if i+1>=lengths[0]:
             j += 1
-            if configSpace[(i,j)]==1: 
+            if configSpace[(j,i)]==1: 
                 print("non monotone path error")
                 break
         elif j+1>=lengths[1]:
             i += 1
-            if configSpace[(i,j)]==1: 
+            if configSpace[(j,i)]==1: 
                 print("non monotone path error")
                 break
-        elif configSpace[(i+1,j+1)]!=1:
+        elif configSpace[(j+1,i+1)]!=1:
             i += 1
             j += 1
-        elif configSpace[(i+1,j)]!=1:
+        elif configSpace[(j+1,i)]!=1:
             i += 1
-        elif configSpace[(i,j+1)]!=1:
+        elif configSpace[(j,i+1)]!=1:
             j += 1
         else:
             print("Error, got stuck or at the end")

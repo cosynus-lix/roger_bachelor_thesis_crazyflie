@@ -12,6 +12,7 @@ from crazyflie_driver.msg import Position
 import math
 
 from paretoConstPath import findPaths
+from helpers import *
 
 # Cube around the movement of the crazyflie
 max_x = 1.0
@@ -80,61 +81,52 @@ if __name__ == '__main__':
 
 
     nmap = [[[0,0,0],
-             [0,0,0],
-             [0,0,0],
-             [0,0,0],
+             [1,0,0],
+             [1,0,0],
+             [1,0,0],
+             [1,0,0],
              [0,0,0],
              [0,0,0]]]
 
-    starts = [(0,0,0), (2,5,0)]
+    starts = [(1,3,0), (2,6,0)]
     goals = [(0,5,0),(1,0,0)]
 
     paths = findPaths(starts, goals, nmap)
-    
-    bounds = (len(map[0][0]), len(map[0]), len(map))
+    bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))
 
-    changeBasisConstants = setConstants(bounds, (3,6,3))
+    changeBasisConstants = setConstants(bounds, (2.7,5.7,2.7))
 
-    x, y, z = changeBasis(starts[0])
-    gx, gy, gz = (goals[0])
+    x, y, z = changeBasis(starts[0], changeBasisConstants)
+    gx, gy, gz = changeBasis(goals[0], changeBasisConstants)
     
     # first go to the first point of the trajectory
-    while ((x-current_position.x)**2 + (y - current_position.y)**2 + (z - current_position.z)**2) > 1e-2 : # 10cm 
-        next_pos.x = x
-        next_pos.y = y
-        next_pos.z = z
+    while d((x,y,z), current_position) > 1e-2: # 10cm (as no root, rather 3cm?) 
+        next_pos.x, next_pos.y, next_pos.z = x, y, z
         next_pos.yaw = 0.0
         next_pos.header.seq += 1
         next_pos.header.stamp = rospy.Time.now()
         pubSetpointPos.publish(next_pos)
         rate.sleep()
 
-    i = 0
+    print("Starting path")
     # Then go to goal
-    while ((gx-current_position.x)**2 + (gy - current_position.y)**2 + (gz - current_position.z)**2) > 1e-2 : # 10cm 
-        i+=1
-        if i<len(paths[0]):
-            x, y, z = paths[0][i][::-1]
-        else:
-            x, y, z = goals[0]
-        next_pos.x = x
-        next_pos.y = y
-        next_pos.z = z
-        next_pos.yaw = 0.0
-        next_pos.header.seq += 1
-        next_pos.header.stamp = rospy.Time.now()
-        pubSetpointPos.publish(next_pos)
-        rate.sleep()
-
+    for i, point in enumerate(paths[0]):
+        gx, gy, gz = changeBasis(point, changeBasisConstants)
+        while d((gx,gy,gz), current_position) > 1e-2: # 10cm (as no root, rather 3cm?)
+            next_pos.x, next_pos.y, next_pos.z = gx, gy, gz
+            next_pos.yaw = 0.0
+            next_pos.header.seq += 1
+            next_pos.header.stamp = rospy.Time.now()
+            pubSetpointPos.publish(next_pos)
+            rate.sleep()
+    print("Done path")
     # Sleep for some time
     for i in range(100):
         rate.sleep()
 
     # Land -> go to 0 0 0.1
-    while ((0-current_position.x)**2 + (0 - current_position.y)**2 + (0.1 - current_position.z)**2) > 1e-2 : # 10cm 
-        next_pos.x = 0
-        next_pos.y = 0
-        next_pos.z = 0.1
+    while d((0,0,0.1), current_position) > 1e-2: # 10cm (as no root, rather 3cm?)
+        next_pos.x, next_pos.y, next_pos.z = 0, 0, 0.1
         next_pos.yaw = 0.0
         next_pos.header.seq += 1
         next_pos.header.stamp = rospy.Time.now()

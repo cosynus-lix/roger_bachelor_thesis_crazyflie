@@ -72,7 +72,7 @@ def astar(start, goal, array, bounds):
         for neighbor in neighbours(current):
             if not(inBounds(neighbor, bounds)):                
                 continue
-                
+
             if array[neighbor[::-1]] == 1:
                 continue
                 

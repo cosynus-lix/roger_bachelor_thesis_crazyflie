@@ -17,10 +17,10 @@ def findPaths(starts, goals, nmap):
     
     drones = [Drone(s, g, nmap) for s,g in zip(starts,goals)]
     paths = [d.path for d in drones]
-    lengths = [len(p) for p in paths]
+    lengths = [len(p) for p in paths[::-1]]
 
 
-    configSpace = np.zeros(lengths)
+    configSpace = np.zeros(lengths[::-1])
     
     # review for n drones
     # create config space for 2 drones
@@ -45,7 +45,7 @@ def findPaths(starts, goals, nmap):
     end = np.array(lengths)-np.ones(amount, dtype=int)
 
     method = "monotone"
-
+    
     possiblePath = astar(start, end, configSpace, lengths)
 
     if method == "astar":
@@ -60,7 +60,7 @@ def findPaths(starts, goals, nmap):
     for i in range(len(paretoEfficient)):
         p1, p2 = paretoEfficient[i]
         
-        pathsToFollow[0].append(drones[0].path[int(p1)])
-        pathsToFollow[1].append(drones[1].path[int(p2)])
+        pathsToFollow[0].append(drones[0].path[int(p2)])
+        pathsToFollow[1].append(drones[1].path[int(p1)])
     
     return pathsToFollow
