@@ -17,7 +17,7 @@ def monotoneLavalle(start, end, configSpace, lengths, possiblePath):
 
     start = [int(s) for s in start]
     optiPath = [start]
-
+    
     while not comp(start, end):
         i, j = start
         if i+1>=lengths[0]:
@@ -34,11 +34,12 @@ def monotoneLavalle(start, end, configSpace, lengths, possiblePath):
             i += 1
             j += 1
         elif configSpace[(j+1,i)]!=1:
-            i += 1
-        elif configSpace[(j,i+1)]!=1:
             j += 1
+        elif configSpace[(j,i+1)]!=1:
+            i += 1
         else:
             print("Error, got stuck or at the end")
+            break
         
         optiPath.append((i,j))
         start = (i,j)

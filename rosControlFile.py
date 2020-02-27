@@ -64,7 +64,7 @@ if __name__ == '__main__':
              [0,0,0]]]
 
     starts = [(0,0,0), (2,6,0)]
-    goals = [(0,5,0),(1,0,0)]
+    goals = [(0,6,0),(0,0,0)]
 
     paths = findPaths(starts, goals, nmap)
     bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))

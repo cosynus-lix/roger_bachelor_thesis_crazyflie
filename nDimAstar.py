@@ -36,7 +36,7 @@ def astar(start, goal, array, bounds):
     start = tuple(start)
     goal = tuple(goal)
     array = np.array(array)
-    
+
     if not(inBounds(start, bounds)):                
         print("Start point out of bounds")
         return []
@@ -55,7 +55,6 @@ def astar(start, goal, array, bounds):
     heappush(oheap, (norm(start, goal), start))
     
     while oheap:
-
         current = heappop(oheap)[1]
 
         if comp(current, goal):
@@ -86,5 +85,5 @@ def astar(start, goal, array, bounds):
                 came_from[neighbor] = current
                 gscore[neighbor] = neighbor_gscore
                 heappush(oheap, (neighbor_gscore + norm(neighbor, goal), neighbor))
-                
+   
     return []

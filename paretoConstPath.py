@@ -14,14 +14,21 @@ def findPaths(starts, goals, nmap):
     if amount != len(goals):
         print("Incorrect amount of start or goal positions")
         return
-    
+    for i, s in enumerate(starts):
+        if nmap[s[2]][s[1]][s[0]] == 1:
+            print("Start",i+1,"is in an obstacle.")
+            return 
+    for i, g in enumerate(goals):
+        if nmap[g[2]][g[1]][g[0]] == 1:
+            print("Goal",i+1,"is in an obstacle.")
+            return
+
     drones = [Drone(s, g, nmap) for s,g in zip(starts,goals)]
     paths = [d.path for d in drones]
     lengths = [len(p) for p in paths[::-1]]
 
-
     configSpace = np.zeros(lengths[::-1])
-    
+
     # review for n drones
     # create config space for 2 drones
     toCheck = []

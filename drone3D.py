@@ -3,17 +3,17 @@ import numpy as np
 from nDimAstar import astar
 
 class Drone:
-    def __init__(self, start, goal, map, size=1):
+    def __init__(self, start, goal, nmap, size=1):
         self.pos = np.array(list(start))
         self.speed = np.array([0,0,0])
         self.goal = goal
         self.path = []
         self.size = size
-        self.map = map # carefull map will update with others
-        self.bounds = (len(map[0][0]), len(map[0]), len(map))
+        self.map = nmap # carefull map will update with others
+        self.bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))
         self.findPath()
         self.maxSpeed = 2
-
+        
     def findPath(self):
         self.path = astar(self.pos, self.goal, self.map, self.bounds)
         # do only if deepcopy
