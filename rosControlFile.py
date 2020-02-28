@@ -21,10 +21,11 @@ def local_position_callback(msg):
 	current_position.z = msg.values[2]
 	current_position.header = msg.header
 
-if __name__ == '__main__':
+def launchDrone(i, path, changeBasisConstants):
+    global current_position
     rospy.init_node('fancy_traj_node', anonymous=True)
 
-    cf_prefix = "/cf1"
+    cf_prefix = "/cf"+str(i+1)
 
     # SUbscribe to get the local position of the crazyflie with prefix cf_prefix
     rospy.Subscriber(cf_prefix + "/local_position" , GenericLogData , local_position_callback)
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     freq_pub = 50
     rate = rospy.Rate(freq_pub)
 
-    # INitialize global variable for actual position of crazyflie
+    # Initialize global variable for actual position of crazyflie
     current_position = Position()
 
     # message used to store pos info to send
@@ -54,7 +55,46 @@ if __name__ == '__main__':
         pubSetpointPos.publish(next_pos)
         rate.sleep()
 
+    x, y, z = changeBasis(path[0], changeBasisConstants)
+    
+    # first go to the first point of the trajectory
+    while d((x,y,z), current_position) > 1e-2: # 10cm (as no root, rather 3cm?) 
+        next_pos.x, next_pos.y, next_pos.z = x, y, z
+        next_pos.yaw = 0.0
+        next_pos.header.seq += 1
+        next_pos.header.stamp = rospy.Time.now()
+        pubSetpointPos.publish(next_pos)
+        rate.sleep()
 
+    
+    # Then go to goal following path
+    print("Starting path")
+    for i, point in enumerate(path):
+        gx, gy, gz = changeBasis(point, changeBasisConstants)
+        while d((gx,gy,gz), current_position) > 1e-2: # 10cm (as no root, rather 3cm?)
+            next_pos.x, next_pos.y, next_pos.z = gx, gy, gz
+            next_pos.yaw = 0.0
+            next_pos.header.seq += 1
+            next_pos.header.stamp = rospy.Time.now()
+            pubSetpointPos.publish(next_pos)
+            rate.sleep()
+    print("Done path")
+
+    # Sleep for some time
+    for i in range(1000):
+        rate.sleep()
+
+    # Land -> go to 0 0 0.1
+    while d((0,0,0.1), current_position) > 1e-2: # 10cm (as no root, rather 3cm?)
+        next_pos.x, next_pos.y, next_pos.z = 0, 0, 0.1
+        next_pos.yaw = 0.0
+        next_pos.header.seq += 1
+        next_pos.header.stamp = rospy.Time.now()
+        pubSetpointPos.publish(next_pos)
+        rate.sleep()
+    return
+
+if __name__ == '__main__':
     nmap = [[[0,0,0],
              [1,0,0],
              [1,0,0],
@@ -71,39 +111,5 @@ if __name__ == '__main__':
 
     changeBasisConstants = setConstants(bounds, (2.7,5.7,2.7))
 
-    x, y, z = changeBasis(starts[0], changeBasisConstants)
-    gx, gy, gz = changeBasis(goals[0], changeBasisConstants)
-    
-    # first go to the first point of the trajectory
-    while d((x,y,z), current_position) > 1e-2: # 10cm (as no root, rather 3cm?) 
-        next_pos.x, next_pos.y, next_pos.z = x, y, z
-        next_pos.yaw = 0.0
-        next_pos.header.seq += 1
-        next_pos.header.stamp = rospy.Time.now()
-        pubSetpointPos.publish(next_pos)
-        rate.sleep()
-
-    print("Starting path")
-    # Then go to goal
-    for i, point in enumerate(paths[0]):
-        gx, gy, gz = changeBasis(point, changeBasisConstants)
-        while d((gx,gy,gz), current_position) > 1e-2: # 10cm (as no root, rather 3cm?)
-            next_pos.x, next_pos.y, next_pos.z = gx, gy, gz
-            next_pos.yaw = 0.0
-            next_pos.header.seq += 1
-            next_pos.header.stamp = rospy.Time.now()
-            pubSetpointPos.publish(next_pos)
-            rate.sleep()
-    print("Done path")
-    # Sleep for some time
-    for i in range(100):
-        rate.sleep()
-
-    # Land -> go to 0 0 0.1
-    while d((0,0,0.1), current_position) > 1e-2: # 10cm (as no root, rather 3cm?)
-        next_pos.x, next_pos.y, next_pos.z = 0, 0, 0.1
-        next_pos.yaw = 0.0
-        next_pos.header.seq += 1
-        next_pos.header.stamp = rospy.Time.now()
-        pubSetpointPos.publish(next_pos)
-        rate.sleep()
+    for i, path in enumerate(paths):
+        launchDrone(i, path, changeBasisConstants)
