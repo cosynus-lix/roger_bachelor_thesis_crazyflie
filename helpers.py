@@ -1,6 +1,5 @@
 
 def setConstants(bounds, worldSize):
-    xyxConst = [i==1 for i in bounds]
     out = []
     for b, w in zip(bounds, worldSize):
         if b==1:

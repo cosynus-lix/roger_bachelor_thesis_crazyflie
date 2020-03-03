@@ -21,10 +21,28 @@ def local_position_callback(msg):
     current_positions[i].y = msg.values[1]
     current_positions[i].z = msg.values[2]
     current_positions[i].header = msg.header
-    print(current_positions[i])
 
 def launchDrone(i, path, changeBasisConstants):
     global current_positions
+
+    def goto(current, goal):
+        while d(goal, current) > 1e-2 : # 10cm (as no root, rather 3cm?) 
+            next_pos.x, next_pos.y, next_pos.z = goal
+            next_pos.yaw = 0.0
+            next_pos.header.seq += 1
+            next_pos.header.stamp = rospy.Time.now()
+            pubSetpointPos.publish(next_pos)
+            rate.sleep()
+
+    def rise(current, h):
+        gx, gy, gz = current.x, current.y, h
+        goto(current, (gx, gy, gz))
+    
+    def planar(current, pos):
+        gx, gy, gx = pos[0], pos[1], current.z
+        goto(current, (gx, gy, gz))
+
+
     rospy.init_node('fancy_traj_node', anonymous=True)
 
     cf_prefix = "/cf"+str(i+1)
@@ -44,56 +62,29 @@ def launchDrone(i, path, changeBasisConstants):
 
     # message used to store pos info to send
     next_pos = Position()
-
+    next_pos = current_positions[i]
 
 	# Takeoff first -> go to 0, 0 , 1
-    while d((0,0,1), current_positions[i]) > 1e-2 : # 10cm (as no root, rather 3cm?) 
-        next_pos.x = 0
-        next_pos.y = 0
-        next_pos.z = 1
-        next_pos.yaw = 0.0
-        next_pos.header.seq += 1
-        next_pos.header.stamp = rospy.Time.now()
-        pubSetpointPos.publish(next_pos)
-        rate.sleep()
+    goto(current_positions[i], (0,0,1))
 
     x, y, z = changeBasis(path[0], changeBasisConstants)
     
     # first go to the first point of the trajectory
-    while d((x,y,z), current_positions[i]) > 1e-2: # 10cm (as no root, rather 3cm?) 
-        next_pos.x, next_pos.y, next_pos.z = x, y, z
-        next_pos.yaw = 0.0
-        next_pos.header.seq += 1
-        next_pos.header.stamp = rospy.Time.now()
-        pubSetpointPos.publish(next_pos)
-        rate.sleep()
-
+    goto(current_positions[i], (x,y,z))
     
     # Then go to goal following path
     print("Starting path")
-    for i, point in enumerate(path):
+    for j, point in enumerate(path):
         gx, gy, gz = changeBasis(point, changeBasisConstants)
-        while d((gx,gy,gz), current_positions[i]) > 1e-2: # 10cm (as no root, rather 3cm?)
-            next_pos.x, next_pos.y, next_pos.z = gx, gy, gz
-            next_pos.yaw = 0.0
-            next_pos.header.seq += 1
-            next_pos.header.stamp = rospy.Time.now()
-            pubSetpointPos.publish(next_pos)
-            rate.sleep()
+        goto(current_positions[i], (gx,gy,gz))
     print("Done path")
 
     # Sleep for some time
-    for i in range(100):
+    for j in range(100):
         rate.sleep()
 
     # Land -> go to 0 0 0.1
-    while d((0,0,0.1), current_positions[i]) > 1e-2: # 10cm (as no root, rather 3cm?)
-        next_pos.x, next_pos.y, next_pos.z = 0, 0, 0.1
-        next_pos.yaw = 0.0
-        next_pos.header.seq += 1
-        next_pos.header.stamp = rospy.Time.now()
-        pubSetpointPos.publish(next_pos)
-        rate.sleep()
+    goto(current_positions[i], (0,0,0.1))
     return
 
 if __name__ == '__main__':
@@ -117,4 +108,5 @@ if __name__ == '__main__':
     current_positions = [Position() for _ in starts]
 # to hard combine
     for i, path in enumerate(paths):
-        launchDrone(i, path, changeBasisConstants)
+        print(len(path))
+        #launchDrone(i, path, changeBasisConstants)
