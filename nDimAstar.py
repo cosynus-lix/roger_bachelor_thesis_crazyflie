@@ -32,7 +32,7 @@ def comp(a, b):
             return False
     return True
 
-def astar(start, goal, array, bounds):
+def astar(start, goal, array, bounds, checkDiag=True):
     start = tuple(start)
     goal = tuple(goal)
     array = np.array(array)
@@ -74,8 +74,12 @@ def astar(start, goal, array, bounds):
 
             if array[neighbor[::-1]] == 1:
                 continue
-                
-            neighbor_gscore = gscore[current] + norm(current, neighbor)
+            
+            tmp = norm(current, neighbor)
+            if not checkDiag:
+                if tmp>1.01:
+                    continue
+            neighbor_gscore = gscore[current] + tmp
             
             if neighbor in close_set: # already got there
                 if neighbor_gscore >= gscore[neighbor]: # and in a better way

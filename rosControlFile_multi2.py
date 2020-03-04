@@ -25,8 +25,8 @@ def local_position_callback(msg):
 def launchDrones(paths, changeBasisConstants):
     global current_positions
 
-    def goto(goals):
-        while len([1 for g, c in zip(goals, current_positions) if d(g, c)>0.1])>0 : # root, rather 3cm 
+    def goto(goals, precision=0.1):
+        while len([1 for g, c in zip(goals, current_positions) if d(g, c)>precision])>0 : # root, rather 3cm 
             for nextP, setP, goal in zip(next_pos, pubSetpointPos, goals):
                 nextP.x, nextP.y, nextP.z = goal
                 nextP.yaw = 0.0
@@ -43,6 +43,10 @@ def launchDrones(paths, changeBasisConstants):
         goals = [(p[0], p[1], c.z) for p, c in zip(pos, current_positions)]
         goto(goals)
 
+    def delay(n=100):
+        for j in range(n):
+            rate.sleep()
+
     maxD = len(paths)
 
     rospy.init_node('fancy_traj_node', anonymous=True)
@@ -58,33 +62,32 @@ def launchDrones(paths, changeBasisConstants):
     rate = rospy.Rate(freq_pub)
 
     # message used to store pos info to send
-    next_pos = [Position() for _ in range(maxD)]
+    next_pos = [c for c in current_positions]
 
-    for i in range(maxD):
-        next_pos[i].x, next_pos[i].y, next_pos[i].z = current_positions[i].x, current_positions[i].y, current_positions[i].z
-    
     # takeoff and go above map
-    alts = [(0,0,3+0.5*i) for i in range(maxD)]
+    alts = [(0,0,0.5) for i in range(maxD)]
     rise(alts)
 
     # go above start
     goals = [changeBasis(paths[i][0], changeBasisConstants) for i in range(maxD)]
     planar(goals)
-
+    
     # lower to start altitude
     rise(goals)
     
     # ajust position
     goto(goals)
+    
+    print("Ready")
+    delay()
 
     # Have all drones follow their path step by step
     for j in range(len(paths[0])):
         goals = [changeBasis(paths[i][j], changeBasisConstants) for i in range(maxD)]
-        goto(goals)
+        goto(goals, 0.05)
 
     # Sleep for some time
-    for j in range(100):
-        rate.sleep()
+    delay()
 
     # land
     land = [(0,0,0.1) for _ in range(maxD)]
@@ -94,22 +97,42 @@ def launchDrones(paths, changeBasisConstants):
 
 if __name__ == '__main__':
     global current_positions
-    nmap = [[[0,0,0],
-             [1,0,0],
-             [1,0,0],
-             [1,0,0],
-             [1,0,0],
-             [1,0,0],
-             [0,0,0]]]
+    nmap = [[[1,1,1,1,1,1],
+             [1,1,0,0,0,1],
+             [1,1,1,0,1,1],
+             [1,1,0,0,1,1],
+             [1,1,1,1,1,1],
+             [1,1,0,0,1,1],
+             [1,1,1,0,1,1],
+             [1,1,0,0,0,1],
+             [1,1,1,1,1,1],
+             [1,1,1,1,1,1],
+             [1,1,1,1,1,1],
+             [1,1,1,1,1,1]],
+             
+            [[1,1,1,1,1,1],
+             [1,1,0,0,0,1],
+             [1,1,1,1,1,1],
+             [1,1,0,1,1,1],
+             [1,1,0,1,1,1],
+             [1,1,0,0,1,1],
+             [1,1,1,1,1,1],
+             [1,1,0,0,0,1],
+             [1,1,1,1,1,1],
+             [1,1,1,1,1,1],
+             [1,1,1,1,1,1],
+             [1,1,1,1,1,1]]]
 
-    starts = [(0,0,0), (2,6,0)]
-    goals = [(0,6,0),(0,0,0)]
+    starts = [(2,1,0),(4,7,1)]
+    goals = [(2,7,1),(2,1,0)]
 
     paths = findPaths(starts, goals, nmap)
     bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))
 
-    changeBasisConstants = setConstants(bounds, (2.5,5.5,2.5))
-
+    changeBasisConstants = setConstants(bounds, (3,6,1))
+    
     current_positions = [Position() for _ in starts]
+
+    genWorld(nmap, changeBasisConstants)
 
     launchDrones(paths, changeBasisConstants)

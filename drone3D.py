@@ -15,7 +15,7 @@ class Drone:
         self.maxSpeed = 2
         
     def findPath(self):
-        self.path = astar(self.pos, self.goal, self.map, self.bounds)
+        self.path = astar(self.pos, self.goal, self.map, self.bounds, False)
         # do only if deepcopy
         #for x,y,z in self.path:
         #    self.map[z][y][x] = 2
