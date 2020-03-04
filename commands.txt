@@ -1,3 +1,6 @@
+cd ~/Documents/roger_bachelor_thesis_crazyflie
+python3 genMap.py map.txt
+
 cd 
 roslaunch crazyflie_gazebo multiple_cf_sim.launch world_name:=../../../../../../Documents/roger_bachelor_thesis_crazyflie/salle_lix
 

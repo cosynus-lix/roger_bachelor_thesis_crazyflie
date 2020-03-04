@@ -97,31 +97,8 @@ def launchDrones(paths, changeBasisConstants):
 
 if __name__ == '__main__':
     global current_positions
-    nmap = [[[1,1,1,1,1,1],
-             [1,1,0,0,0,1],
-             [1,1,1,0,1,1],
-             [1,1,0,0,1,1],
-             [1,1,1,1,1,1],
-             [1,1,0,0,1,1],
-             [1,1,1,0,1,1],
-             [1,1,0,0,0,1],
-             [1,1,1,1,1,1],
-             [1,1,1,1,1,1],
-             [1,1,1,1,1,1],
-             [1,1,1,1,1,1]],
-             
-            [[1,1,1,1,1,1],
-             [1,1,0,0,0,1],
-             [1,1,1,1,1,1],
-             [1,1,0,1,1,1],
-             [1,1,0,1,1,1],
-             [1,1,0,0,1,1],
-             [1,1,1,1,1,1],
-             [1,1,0,0,0,1],
-             [1,1,1,1,1,1],
-             [1,1,1,1,1,1],
-             [1,1,1,1,1,1],
-             [1,1,1,1,1,1]]]
+
+    nmap = loadMap("map.txt")
 
     starts = [(2,1,0),(4,7,1)]
     goals = [(2,7,1),(2,1,0)]
@@ -132,7 +109,5 @@ if __name__ == '__main__':
     changeBasisConstants = setConstants(bounds, (3,6,1))
     
     current_positions = [Position() for _ in starts]
-
-    genWorld(nmap, changeBasisConstants)
 
     launchDrones(paths, changeBasisConstants)

@@ -48,4 +48,14 @@ def genWorld(nmap, constants, name="block50", infile="basis.world", outfile="sal
             outfile.write(infile[loc:])
             outfile.flush()
 
-#def loadMap(infile):
+def loadMap(infile):
+    out = [[]]
+    with open(infile, 'r') as infile:
+        for l in infile.readlines():
+            l = l.strip()
+            if l == "":
+                out.append([])
+                continue
+            tmp = [int(i) for i in l.split(',')]
+            out[-1].append(tmp)
+    return out

@@ -136,6 +136,11 @@
     
     <include>
       <uri>model://block50</uri>
+      <pose>0.8999999999999999 -0.8181818181818183 1.0 0 0 0</pose>
+    </include>
+    
+    <include>
+      <uri>model://block50</uri>
       <pose>-0.9 -0.27272727272727293 1.0 0 0 0</pose>
     </include>
     
