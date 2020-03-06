@@ -12,7 +12,6 @@ def monotoneLavalle(start, end, configSpace, lengths, possiblePath):
     for point in possiblePath:
         point = tuple([int(s) for s in point[::-1]])
         configSpace[point] = 2
-
     addCriticals(configSpace, lengths)
 
     start = [int(s) for s in start]

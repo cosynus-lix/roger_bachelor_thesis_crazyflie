@@ -1,6 +1,7 @@
 import numpy as np
 from itertools import product
 from heapq import *
+import random as rd
 
 def norm(a, b):
     a, b = np.array(a), np.array(b)
@@ -32,7 +33,7 @@ def comp(a, b):
             return False
     return True
 
-def astar(start, goal, array, bounds, checkDiag=True):
+def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1):
     start = tuple(start)
     goal = tuple(goal)
     array = np.array(array)
@@ -53,6 +54,7 @@ def astar(start, goal, array, bounds, checkDiag=True):
     gscore = {start:0}
     oheap = []
     heappush(oheap, (norm(start, goal), start))
+    paths = []
     
     while oheap:
         current = heappop(oheap)[1]
@@ -65,8 +67,13 @@ def astar(start, goal, array, bounds, checkDiag=True):
                 current = came_from[current]
             data.append(start)
             data.reverse()
-            return data
-
+            if amountPaths==1:
+                return data
+            else:
+                paths.append(data)
+                if len(paths)==amountPaths:
+                    return paths
+            continue
         close_set.add(current)
         for neighbor in neighbours(current):
             if not(inBounds(neighbor, bounds)):                
@@ -79,6 +86,7 @@ def astar(start, goal, array, bounds, checkDiag=True):
             if not checkDiag:
                 if tmp>1.01:
                     continue
+
             neighbor_gscore = gscore[current] + tmp
             
             if neighbor in close_set: # already got there
@@ -89,5 +97,5 @@ def astar(start, goal, array, bounds, checkDiag=True):
                 came_from[neighbor] = current
                 gscore[neighbor] = neighbor_gscore
                 heappush(oheap, (neighbor_gscore + norm(neighbor, goal), neighbor))
-   
-    return []
+
+    return paths

@@ -8,7 +8,7 @@ from crazyflie_driver.msg import Position
 
 import math
 
-from paretoConstPath import findPaths
+from paretoConstPath_useMultiPaths import findPaths
 from helpers import *
 
 #########################################################################################
@@ -98,16 +98,15 @@ def launchDrones(paths, changeBasisConstants):
 if __name__ == '__main__':
     global current_positions
 
-    nmap = loadMap("map.txt")
+    nmap = loadMap("maps/line_bump.map")
 
-    starts = [(2,1,0),(4,7,1)]
-    goals = [(2,7,1),(2,1,0)]
+    starts = [(4,1,0),(4,10,0)]
+    goals = [(4,10,0),(4,1,0)]
 
     paths = findPaths(starts, goals, nmap)
     bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))
 
     changeBasisConstants = setConstants(bounds, (3,6,1))
-    
     current_positions = [Position() for _ in starts]
 
     launchDrones(paths, changeBasisConstants)
