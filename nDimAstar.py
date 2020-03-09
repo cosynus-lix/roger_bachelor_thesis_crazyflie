@@ -73,6 +73,13 @@ def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1):
                 paths.append(data)
                 if len(paths)==amountPaths:
                     return paths
+            #clear heap and add bonus
+            while oheap:
+                heappop(oheap)
+            heappush(oheap, (norm(start, goal), start))
+            close_set = set()
+            came_from = {}
+            gscore = {start:0}
             continue
         close_set.add(current)
         for neighbor in neighbours(current):
@@ -86,8 +93,12 @@ def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1):
             if not checkDiag:
                 if tmp>1.01:
                     continue
+                
+            bonus = 0
+            if len(paths)>0: 
+                bonus += sum([3 for p in paths if neighbor in p])
 
-            neighbor_gscore = gscore[current] + tmp
+            neighbor_gscore = gscore[current] + tmp + bonus
             
             if neighbor in close_set: # already got there
                 if neighbor_gscore >= gscore[neighbor]: # and in a better way

@@ -45,7 +45,6 @@ def findPaths(starts, goals, nmap):
             #only implemented in 2D for now
             return monotoneLavalle(start, end, configSpace, lengths, possiblePath)
 
-
     amount = len(starts)
     if amount != len(goals):
         print("Incorrect amount of start or goal positions")
@@ -63,7 +62,8 @@ def findPaths(starts, goals, nmap):
 
     drones = [Drone(s, g, nmap, amountPaths=amountPathsExplore) for s,g in zip(starts,goals)]
     paths = [d.path for d in drones]
-    
+    for p in paths:
+        print(len(p))
     if amountPathsExplore==1:
         paretoEfficient = findConfigSpaceAndPath(paths[0], paths[1])
         pathsToFollow = [[] for _ in range(amount)]

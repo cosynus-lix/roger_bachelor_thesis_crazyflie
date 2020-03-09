@@ -10,6 +10,7 @@ import math
 
 from paretoConstPath_useMultiPaths import findPaths
 from helpers import *
+from drone3D import Drone
 
 #########################################################################################
 
@@ -22,7 +23,7 @@ def local_position_callback(msg):
     current_positions[i].z = msg.values[2]
     current_positions[i].header = msg.header
 
-def launchDrones(paths, changeBasisConstants):
+def launchDrones(starts, goalsF, nmap, changeBasisConstants):
     global current_positions
 
     def goto(goals, precision=0.1):
@@ -47,7 +48,9 @@ def launchDrones(paths, changeBasisConstants):
         for j in range(n):
             rate.sleep()
 
-    maxD = len(paths)
+
+    drones = [Drone(s, g, nmap) for s,g in zip(starts,goalsF)]
+    maxD = len(drones)
 
     rospy.init_node('fancy_traj_node', anonymous=True)
     pubSetpointPos = []
@@ -69,22 +72,24 @@ def launchDrones(paths, changeBasisConstants):
     rise(alts)
 
     # go above start
-    goals = [changeBasis(paths[i][0], changeBasisConstants) for i in range(maxD)]
+    goals = [changeBasis(s, changeBasisConstants) for s in starts]
     planar(goals)
     
     # lower to start altitude
     rise(goals)
     
     # ajust position
-    goto(goals)
+    #goto(goals)
     
     print("Ready")
     delay()
 
-    # Have all drones follow their path step by step
-    for j in range(len(paths[0])):
-        goals = [changeBasis(paths[i][j], changeBasisConstants) for i in range(maxD)]
-        goto(goals, 0.05)
+    # Have all drones follow the flow
+    while len([1 for g, c in zip(goalsF, current_positions) if d(g, c)>0.1])>0:
+        for drone in drones:
+            drone.update(0.1, [(c.x, c.y, c.z) for c in current_positions])
+        goto([changeBasis(drone.pos, changeBasisConstants) for drone in drones])
+
 
     # Sleep for some time
     delay()
@@ -98,15 +103,13 @@ def launchDrones(paths, changeBasisConstants):
 if __name__ == '__main__':
     global current_positions
 
-    nmap = loadMap("maps/line_bump.map")
+    nmap = loadMap("maps/maze.map")
 
-    starts = [(4,1,0),(4,10,0)]
-    goals = [(4,10,0),(4,1,0)]
-
-    paths = findPaths(starts, goals, nmap)
+    starts = [(4,1,1), (4,10,1), (4,3,1)]
+    goals = [(4,10,1), (4,1,1), (3,10,1)]
     bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))
 
     changeBasisConstants = setConstants(bounds, (3,6,1))
     current_positions = [Position() for _ in starts]
 
-    launchDrones(paths, changeBasisConstants)
+    launchDrones(starts, goals, nmap, changeBasisConstants)
