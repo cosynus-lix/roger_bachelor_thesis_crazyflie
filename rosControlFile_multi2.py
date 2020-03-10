@@ -100,8 +100,8 @@ if __name__ == '__main__':
 
     nmap = loadMap("maps/line_bump.map")
 
-    starts = [(4,1,0),(4,10,0)]
-    goals = [(4,10,0),(4,1,0)]
+    starts = [(4,1,1),(4,10,1)]
+    goals = [(4,10,1),(4,1,1)]
 
     paths = findPaths(starts, goals, nmap)
     bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))

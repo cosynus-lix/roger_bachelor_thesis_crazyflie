@@ -33,6 +33,12 @@ def findPaths(starts, goals, nmap):
                     if configSpace[(i,j-1)] != 1:
                         configSpace[(i,j-1)] = 1
                         toCheck.append((i,j-1))
+            elif i == lengths[0]-1 and j!=0:
+                configSpace[(i,j-1)] = 1
+                toCheck.append((i,j-1))
+            elif j == lengths[1]-1 and i!=0:
+                configSpace[(i-1,j)] = 1
+                toCheck.append((i-1,j))
 
         start = np.zeros(amount, dtype=int)
         end = np.array(lengths)-np.ones(amount, dtype=int)
@@ -62,8 +68,7 @@ def findPaths(starts, goals, nmap):
 
     drones = [Drone(s, g, nmap, amountPaths=amountPathsExplore) for s,g in zip(starts,goals)]
     paths = [d.path for d in drones]
-    for p in paths:
-        print(len(p))
+
     if amountPathsExplore==1:
         paretoEfficient = findConfigSpaceAndPath(paths[0], paths[1])
         pathsToFollow = [[] for _ in range(amount)]
