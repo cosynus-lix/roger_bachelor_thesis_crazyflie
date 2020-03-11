@@ -3,6 +3,7 @@ from nDimAstar import astar
 import numpy as np
 from time import sleep
 from monotoneLavalle import monotoneLavalle
+from helpers import *
 
 # 0: empty
 # 1: obstacle
@@ -10,35 +11,19 @@ from monotoneLavalle import monotoneLavalle
 # 3: drones
 
 def findPaths(starts, goals, nmap):
-    def findConfigSpaceAndPath(p1, p2):
+    def findConfigSpaceAndPath(paths):
+        if len(paths) == 2:
+            p1 = paths[0]
+            p2 = paths[1]
+        if len(paths) == 3:
+            p3 = paths[2]
+
         method = "monotone"
-        lengths = [len(p1), len(p2)][::-1]
+
+        lengths = [len(p) for p in paths[::-1]]
         configSpace = np.zeros(lengths[::-1])
         
-        # review for n drones
-        # create config space for 2 drones
-        toCheck = []
-        for i, point in enumerate(p1):
-            for j, point2 in enumerate(p2):
-                if point == point2:
-                    configSpace[(i,j)] = 1
-                    toCheck.append((i,j))
-
-        # convexify it
-        while len(toCheck)!=0:
-            p = toCheck.pop()
-            i, j = p
-            if i+1<lengths[0] and j!=0:
-                if configSpace[(i+1,j-1)] == 1:
-                    if configSpace[(i,j-1)] != 1:
-                        configSpace[(i,j-1)] = 1
-                        toCheck.append((i,j-1))
-            elif i == lengths[0]-1 and j!=0:
-                configSpace[(i,j-1)] = 1
-                toCheck.append((i,j-1))
-            elif j == lengths[1]-1 and i!=0:
-                configSpace[(i-1,j)] = 1
-                toCheck.append((i-1,j))
+        configSpace = config2D(p1, p2)
 
         start = np.zeros(amount, dtype=int)
         end = np.array(lengths)-np.ones(amount, dtype=int)
@@ -70,14 +55,12 @@ def findPaths(starts, goals, nmap):
     paths = [d.path for d in drones]
 
     if amountPathsExplore==1:
-        paretoEfficient = findConfigSpaceAndPath(paths[0], paths[1])
+        paretoEfficient = findConfigSpaceAndPath(paths)
         pathsToFollow = [[] for _ in range(amount)]
-
-        for i in range(len(paretoEfficient)):
-            p1, p2 = paretoEfficient[i]
         
-            pathsToFollow[0].append(drones[0].path[int(p2)])
-            pathsToFollow[1].append(drones[1].path[int(p1)])
+        for p in paretoEfficient:
+            for i,j in enumerate(p[::-1]):
+                pathsToFollow[i].append(paths[i][int(j)])
         
         return pathsToFollow
 
@@ -86,7 +69,7 @@ def findPaths(starts, goals, nmap):
 
     for i, p1 in enumerate(paths[0]):
         for j,p2 in enumerate(paths[1]):
-            tmp = findConfigSpaceAndPath(p1, p2)
+            tmp = findConfigSpaceAndPath((p1, p2))
             if len(tmp)<=1:
                 continue
             if len(tmp)<bestLen:
@@ -94,7 +77,7 @@ def findPaths(starts, goals, nmap):
                 whichPaths = [i,j]
 
     i,j = whichPaths
-    paretoEfficient = findConfigSpaceAndPath(paths[0][i], paths[1][j])
+    paretoEfficient = findConfigSpaceAndPath((paths[0][i], paths[1][j]))
 
     pathsToFollow = [[] for _ in range(amount)]
     

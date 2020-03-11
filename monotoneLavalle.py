@@ -1,12 +1,5 @@
 import numpy as np
-
-def comp(a, b):
-    if len(a) != len(b):
-        return False
-    for a2, b2 in zip(a, b):
-        if a2 != b2:
-            return False
-    return True
+from helpers import comp
 
 def monotoneLavalle(start, end, configSpace, lengths, possiblePath):
     for point in possiblePath:
@@ -18,30 +11,12 @@ def monotoneLavalle(start, end, configSpace, lengths, possiblePath):
     optiPath = [start]
     
     while not comp(start, end):
-        i, j = start
-        if i+1>=lengths[0]:
-            j += 1
-            if configSpace[(j,i)]==1: 
-                print("non monotone path error")
-                break
-        elif j+1>=lengths[1]:
-            i += 1
-            if configSpace[(j,i)]==1: 
-                print("non monotone path error")
-                break
-        elif configSpace[(j+1,i+1)]!=1:
-            i += 1
-            j += 1
-        elif configSpace[(j+1,i)]!=1:
-            j += 1
-        elif configSpace[(j,i+1)]!=1:
-            i += 1
-        else:
-            print("Error, got stuck or at the end")
-            break
-        
-        optiPath.append((i,j))
-        start = (i,j)
+        for i in range(len(lengths)):
+            if start[i]+1 < lengths[i]:
+                tmp = [s if j!=i else s+1 for j,s in enumerate(start)]
+                if configSpace[tuple(tmp[::-1])] != 1:
+                    start = [t for t in tmp]
+        optiPath.append(tuple(start))
     return optiPath
 
 

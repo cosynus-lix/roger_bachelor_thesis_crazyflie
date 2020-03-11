@@ -1,3 +1,4 @@
+import numpy as np
 
 def setConstants(bounds, worldSize):
     out = []
@@ -22,31 +23,43 @@ def d(point, current):
     current = (current.x, current.y, current.z)
     return sum([(p-c)**2 for p,c in zip(point, current)])
 
-def createBolck(point, constants, name):
-    x,y,z = changeBasis(point, constants)
-    return """
-    <include>
-      <uri>model://"""+name+"""</uri>
-      <pose>"""+str(x)+' '+str(y)+' '+str(z)+""" 0 0 0</pose>
-    </include>
-    """
+def comp(p1, p2):
+    if len(p1) != len(p2):
+        return False
+    for i, j in zip(p1, p2):
+        if i!=j:
+            return False
+    return True
 
-def genWorld(nmap, constants, name="block50", infile="basis.world", outfile="salle_lix.world"):
-    bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))
-    with open(infile, 'r') as infile:
-        with open(outfile, 'w') as outfile:
-            infile = infile.read()
-            com = "<!-- obstacles -->"
-            loc = infile.find(com) + len(com)
-            outfile.write(infile[:loc])
-            for i in range(bounds[2]):
-                for j in range(1, bounds[1]-1):
-                    for k in range(1, bounds[0]-1):
-                        if nmap[i][j][k] == 1:
-                            outfile.write(createBolck((k, j, i), constants, name))
-                outfile.flush()
-            outfile.write(infile[loc:])
-            outfile.flush()
+def config2D(p1, p2):
+    lengths = [len(p2), len(p1)]
+    configSpace = np.zeros(lengths[::-1])
+    
+    # review for n drones
+    # create config space for 2 drones
+    toCheck = []
+    for i, point in enumerate(p1):
+        for j, point2 in enumerate(p2):
+            if point == point2:
+                configSpace[(i,j)] = 1
+                toCheck.append((i,j))
+
+    # convexify it
+    while len(toCheck)!=0:
+        p = toCheck.pop()
+        i, j = p
+        if i+1<lengths[0] and j!=0:
+            if configSpace[(i+1,j-1)] == 1:
+                if configSpace[(i,j-1)] != 1:
+                    configSpace[(i,j-1)] = 1
+                    toCheck.append((i,j-1))
+        elif i == lengths[0]-1 and j!=0:
+            configSpace[(i,j-1)] = 1
+            toCheck.append((i,j-1))
+        elif j == lengths[1]-1 and i!=0:
+            configSpace[(i-1,j)] = 1
+            toCheck.append((i-1,j))
+    return configSpace
 
 def loadMap(infile):
     out = [[]]
