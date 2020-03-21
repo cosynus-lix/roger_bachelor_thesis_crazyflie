@@ -4,6 +4,8 @@ import numpy as np
 from time import sleep
 from monotoneLavalle import monotoneLavalle
 from helpers import *
+from itertools import product
+from copy import deepcopy
 
 # 0: empty
 # 1: obstacle
@@ -12,29 +14,38 @@ from helpers import *
 
 def findPaths(starts, goals, nmap):
     def findConfigSpaceAndPath(paths):
-        if len(paths) == 2:
-            p1 = paths[0]
-            p2 = paths[1]
-        if len(paths) == 3:
-            p3 = paths[2]
+        #if len(paths) == 2:
+        #    p1 = paths[0]
+        #    p2 = paths[1]
+        #if len(paths) == 3:
+        #    p3 = paths[2]
 
         method = "monotone"
 
         lengths = [len(p) for p in paths[::-1]]
-        configSpace = np.zeros(lengths[::-1])
-        
-        configSpace = config2D(p1, p2)
+        configSpaces = []
 
-        start = np.zeros(amount, dtype=int)
-        end = np.array(lengths)-np.ones(amount, dtype=int)
+        for i,p1 in enumerate(paths):
+            for j,p2 in enumerate(paths[i+1:]):
+                j += 1 + i
+                #print(i,j+i+1)
+
+                configSpace = np.zeros((lengths[j], lengths[i]))
         
-        possiblePath = astar(start, end, configSpace, lengths)
+                configSpace = config2D(p1, p2)
+
+                configSpaces.append(np.array(configSpace))
+
+        start = np.zeros(len(lengths), dtype=int)
+        end = np.array(lengths)-np.ones(len(lengths), dtype=int)
+        
+        possiblePath = astar(start, end, configSpaces, lengths, projections=True)
 
         if method == "astar":
             return possiblePath
         elif method == "monotone":
             #only implemented in 2D for now
-            return monotoneLavalle(start, end, configSpace, lengths, possiblePath)
+            return monotoneLavalle(start, end, configSpaces, lengths, possiblePath)
 
     amount = len(starts)
     if amount != len(goals):
@@ -49,42 +60,40 @@ def findPaths(starts, goals, nmap):
             print("Goal",i+1,"is in an obstacle.")
             return
 
-    amountPathsExplore = 3
+    amountPathsExplore = 2
 
     drones = [Drone(s, g, nmap, amountPaths=amountPathsExplore) for s,g in zip(starts,goals)]
     paths = [d.path for d in drones]
 
-    if amountPathsExplore==1:
-        paretoEfficient = findConfigSpaceAndPath(paths)
-        pathsToFollow = [[] for _ in range(amount)]
+#    if amountPathsExplore == 1:
+#        paretoEfficient = findConfigSpaceAndPath(paths)
+#        pathsToFollow = [[] for _ in range(amount)]
+#        for p in paretoEfficient:
+#            for i,j in enumerate(p[::-1]):
+#                pathsToFollow[i].append(paths[i][int(j)])
+#        
+#        return pathsToFollow
         
-        for p in paretoEfficient:
-            for i,j in enumerate(p[::-1]):
-                pathsToFollow[i].append(paths[i][int(j)])
-        
-        return pathsToFollow
-
     bestLen = np.inf
-    whichPaths = [0,0]
+    bestPath = []
+    bestPaths = []
 
-    for i, p1 in enumerate(paths[0]):
-        for j,p2 in enumerate(paths[1]):
-            tmp = findConfigSpaceAndPath((p1, p2))
-            if len(tmp)<=1:
-                continue
-            if len(tmp)<bestLen:
-                bestLen = len(tmp)
-                whichPaths = [i,j]
-
-    i,j = whichPaths
-    paretoEfficient = findConfigSpaceAndPath((paths[0][i], paths[1][j]))
-
+    for possiblePaths in list(product(*paths)):
+        a = int(np.sqrt(sum([len(p)**2 for p in possiblePaths])))
+        if a >= bestLen:
+            continue
+        tmpPath = findConfigSpaceAndPath(possiblePaths)
+        tmpLen = len(tmpPath)
+        if tmpLen <= 1:
+            continue
+        if tmpLen < bestLen:
+            bestLen = tmpLen
+            bestPath = deepcopy(tmpPath)
+            bestPaths = deepcopy(possiblePaths)
+            
     pathsToFollow = [[] for _ in range(amount)]
+    for p in bestPath:
+        for i,j in enumerate(p[::-1]):
+            pathsToFollow[i].append(bestPaths[i][int(j)])
     
-    for p in paretoEfficient:
-        p1, p2 = p
-        pathsToFollow[0].append(paths[0][i][int(p2)])
-        pathsToFollow[1].append(paths[1][j][int(p1)])
-        
     return pathsToFollow
-

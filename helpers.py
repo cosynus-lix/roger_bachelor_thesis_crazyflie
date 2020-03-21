@@ -61,6 +61,16 @@ def config2D(p1, p2):
             toCheck.append((i-1,j))
     return configSpace
 
+def checkConfigWall(configSpaces, point):
+    point = point[::-1]
+    n = len(point)
+    for i, p1 in enumerate(point):
+        for j, p2 in enumerate(point[i+1:]):
+            tmp = n*i - (i*i+i)//2 + j
+            if configSpaces[tmp][(p1,p2)]==1:
+                return True
+    return False
+
 def loadMap(infile):
     out = [[]]
     with open(infile, 'r') as infile:

@@ -2,6 +2,7 @@ import numpy as np
 from itertools import product
 from heapq import *
 import random as rd
+from helpers import checkConfigWall
 
 def norm(a, b):
     a, b = np.array(a), np.array(b)
@@ -33,7 +34,24 @@ def comp(a, b):
             return False
     return True
 
-def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1):
+def compPath(p1, p2):
+    if len(p1) != len(p2):
+        return False
+    for point1, point2 in zip(p1, p2):
+        if not comp(point1, point2):
+            return False
+    return True
+
+def removeDoubles(paths):
+    for i, p1 in enumerate(paths):
+        for j, p2 in enumerate(paths[i+1:]):
+            j += 1 + i
+            if compPath(p1,p2):
+                paths.pop(j)
+    return paths
+
+def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1, projections=False):
+        
     start = tuple(start)
     goal = tuple(goal)
     array = np.array(array)
@@ -72,7 +90,7 @@ def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1):
             else:
                 paths.append(data)
                 if len(paths)==amountPaths:
-                    return paths
+                    return removeDoubles(paths)
             #clear heap and add bonus
             while oheap:
                 heappop(oheap)
@@ -86,8 +104,12 @@ def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1):
             if not(inBounds(neighbor, bounds)):                
                 continue
 
-            if array[neighbor[::-1]] == 1:
-                continue
+            if projections:
+                if checkConfigWall(array, neighbor):
+                    continue
+            else:
+                if array[neighbor[::-1]] == 1:
+                    continue
             
             tmp = norm(current, neighbor)
             if not checkDiag:
@@ -109,4 +131,4 @@ def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1):
                 gscore[neighbor] = neighbor_gscore
                 heappush(oheap, (neighbor_gscore + norm(neighbor, goal), neighbor))
 
-    return paths
+    return removeDoubles(paths)

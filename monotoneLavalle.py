@@ -1,26 +1,32 @@
 import numpy as np
-from helpers import comp
+from helpers import comp, checkConfigWall
 
-def monotoneLavalle(start, end, configSpace, lengths, possiblePath):
+def monotoneLavalle(start, end, configSpaces, lengths, possiblePath):
+    dim = len(lengths)
     for point in possiblePath:
-        point = tuple([int(s) for s in point[::-1]])
-        configSpace[point] = 2
-    addCriticals(configSpace, lengths)
+        point = [int(s) for s in point[::-1]]
+        for i, p1 in enumerate(point):
+            for j, p2 in enumerate(point[i+1:]):
+                tmp = dim*i - (i*i+i)//2 + j
+                configSpaces[tmp][(p1,p2)] = 2
+    
+    for i,c in enumerate(configSpaces):
+        configSpaces[i] = addCriticals(c)
 
     start = [int(s) for s in start]
     optiPath = [start]
-    
+
     while not comp(start, end):
         for i in range(len(lengths)):
             if start[i]+1 < lengths[i]:
                 tmp = [s if j!=i else s+1 for j,s in enumerate(start)]
-                if configSpace[tuple(tmp[::-1])] != 1:
+                if not checkConfigWall(configSpaces, tmp):
                     start = [t for t in tmp]
         optiPath.append(tuple(start))
     return optiPath
 
 
-def addCriticals(configSpace, lengths):
+def addCriticals(configSpace):
     for i, row in enumerate(configSpace):
         if i==0: continue
         afterPath = True
@@ -37,3 +43,4 @@ def addCriticals(configSpace, lengths):
                         configSpace[i,j-1] = 1
             if value==2: 
                 afterPath = False
+    return configSpace
