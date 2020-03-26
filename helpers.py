@@ -32,8 +32,8 @@ def comp(p1, p2):
     return True
 
 def config2D(p1, p2):
-    lengths = [len(p2), len(p1)]
-    configSpace = np.zeros(lengths[::-1])
+    lengths = [len(p1), len(p2)]
+    configSpace = np.zeros(lengths)#[::-1])
     
     # review for n drones
     # create config space for 2 drones
@@ -48,27 +48,44 @@ def config2D(p1, p2):
     while len(toCheck)!=0:
         p = toCheck.pop()
         i, j = p
-        if i+1<lengths[0] and j!=0:
+
+        if i+1<lengths[0] and j>0: # check lower
             if configSpace[(i+1,j-1)] == 1:
                 if configSpace[(i,j-1)] != 1:
                     configSpace[(i,j-1)] = 1
                     toCheck.append((i,j-1))
-        elif i == lengths[0]-1 and j!=0:
+                    continue
+        if j+1<lengths[1] and i>0: # check near
+            if configSpace[(i-1,j+1)] == 1:
+                if configSpace[(i-1,j)] != 1:
+                    configSpace[(i-1,j)] = 1
+                    toCheck.append((i-1,j))
+                    continue
+        if i == lengths[0]-1 and j!=0: #imaginary wall to the side
             configSpace[(i,j-1)] = 1
             toCheck.append((i,j-1))
-        elif j == lengths[1]-1 and i!=0:
+            continue
+        if j == lengths[1]-1 and i!=0: #imaginary wall to the side
             configSpace[(i-1,j)] = 1
             toCheck.append((i-1,j))
+            continue
+
     return configSpace
 
 def checkConfigWall(configSpaces, point):
     point = point[::-1]
     n = len(point)
+    count = 0
     for i, p1 in enumerate(point):
         for j, p2 in enumerate(point[i+1:]):
             tmp = n*i - (i*i+i)//2 + j
-            if configSpaces[tmp][(p1,p2)]==1:
+            current = configSpaces[tmp][(p1,p2)]
+            if current == 1:
                 return True
+            if current == 3:
+                count += 1
+    if count == n:
+        return True
     return False
 
 def loadMap(infile):

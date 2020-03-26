@@ -14,13 +14,7 @@ from copy import deepcopy
 
 def findPaths(starts, goals, nmap):
     def findConfigSpaceAndPath(paths):
-        #if len(paths) == 2:
-        #    p1 = paths[0]
-        #    p2 = paths[1]
-        #if len(paths) == 3:
-        #    p3 = paths[2]
-
-        method = "monotone"
+        method = "monotoneNoCrits"
 
         lengths = [len(p) for p in paths[::-1]]
         configSpaces = []
@@ -38,14 +32,14 @@ def findPaths(starts, goals, nmap):
 
         start = np.zeros(len(lengths), dtype=int)
         end = np.array(lengths)-np.ones(len(lengths), dtype=int)
-        
-        possiblePath = astar(start, end, configSpaces, lengths, projections=True)
 
         if method == "astar":
-            return possiblePath
+            return astar(start, end, configSpaces, lengths, projections=True)
         elif method == "monotone":
-            #only implemented in 2D for now
+            possiblePath = astar(start, end, configSpaces, lengths, projections=True)
             return monotoneLavalle(start, end, configSpaces, lengths, possiblePath)
+        elif method == "monotoneNoCrits":
+            return monotoneLavalle(start, end, configSpaces, lengths, [], addCrits=False)
 
     amount = len(starts)
     if amount != len(goals):
@@ -60,29 +54,25 @@ def findPaths(starts, goals, nmap):
             print("Goal",i+1,"is in an obstacle.")
             return
 
-    amountPathsExplore = 2
+    amountPathsExplore = 3
 
     drones = [Drone(s, g, nmap, amountPaths=amountPathsExplore) for s,g in zip(starts,goals)]
     paths = [d.path for d in drones]
 
-#    if amountPathsExplore == 1:
-#        paretoEfficient = findConfigSpaceAndPath(paths)
-#        pathsToFollow = [[] for _ in range(amount)]
-#        for p in paretoEfficient:
-#            for i,j in enumerate(p[::-1]):
-#                pathsToFollow[i].append(paths[i][int(j)])
-#        
-#        return pathsToFollow
-        
     bestLen = np.inf
     bestPath = []
     bestPaths = []
 
     for possiblePaths in list(product(*paths)):
         a = int(np.sqrt(sum([len(p)**2 for p in possiblePaths])))
+        print("test", a<bestLen)
         if a >= bestLen:
             continue
         tmpPath = findConfigSpaceAndPath(possiblePaths)
+        
+        if tmpPath == []:
+            continue
+
         tmpLen = len(tmpPath)
         if tmpLen <= 1:
             continue
@@ -95,5 +85,5 @@ def findPaths(starts, goals, nmap):
     for p in bestPath:
         for i,j in enumerate(p[::-1]):
             pathsToFollow[i].append(bestPaths[i][int(j)])
-    
+    print("Done")
     return pathsToFollow
