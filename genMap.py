@@ -28,8 +28,8 @@ def genWorld(nmap, constants, name="block50", infile="basis.world", outfile="sal
             outfile.flush()
 
 if __name__ == '__main__':
-    if len(sys.argv)<1:
-        nmap = loadMap("map.txt")
+    if len(sys.argv)<2:
+        nmap = loadMap("maps/line_bump.map")
     else:
         nmap = loadMap(sys.argv[1])
     bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))

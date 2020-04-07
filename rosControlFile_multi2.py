@@ -98,7 +98,10 @@ def launchDrones(paths, changeBasisConstants):
 if __name__ == '__main__':
     global current_positions
 
-    nmap = loadMap("maps/line_bump.map")
+    if len(sys.argv)<2:
+        nmap = loadMap("maps/line_bump.map")
+    else:
+        nmap = loadMap(sys.argv[1])
 
     starts = [(4,1,1),(4,10,1),(3,10,1)]
     goals = [(3,10,1),(4,1,1),(3,2,1)]

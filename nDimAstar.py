@@ -12,6 +12,14 @@ def normV(v):
     v = np.array(v)
     return v@v
 
+def heuristic(a, b, checkDiag):
+    a, b = np.array(a), np.array(b)
+    tmp = [abs(x) for x in (a-b)]
+    if checkDiag:
+        return sum(tmp) - 0.6 * min(tmp)
+    else:
+        return sum(tmp)
+
 def inBounds(p, bounds):
     for i in range(len(bounds)):
         if 0 > p[i] or p[i] >= bounds[i]:
@@ -129,6 +137,6 @@ def astar(start, goal, array, bounds, checkDiag=True, amountPaths=1, projections
             if  (neighbor_gscore < gscore.get(neighbor, 0)) or (neighbor not in [i[1] for i in oheap]):
                 came_from[neighbor] = current
                 gscore[neighbor] = neighbor_gscore
-                heappush(oheap, (neighbor_gscore + norm(neighbor, goal), neighbor))
+                heappush(oheap, (neighbor_gscore + heuristic(neighbor, goal, checkDiag), neighbor))
 
     return removeDoubles(paths)
