@@ -106,7 +106,7 @@ if __name__ == '__main__':
     nmap = loadMap("maps/maze.map")
 
     starts = [(4,1,1), (4,10,1), (4,3,1)]
-    goals = [(4,10,1), (4,1,1), (3,10,1)]
+    goals = [(3,10,1), (4,1,1), (4,10,1)]
     bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))
 
     changeBasisConstants = setConstants(bounds, (3,6,1))

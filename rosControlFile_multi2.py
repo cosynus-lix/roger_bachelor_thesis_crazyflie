@@ -84,7 +84,7 @@ def launchDrones(paths, changeBasisConstants):
     # Have all drones follow their path step by step
     for j in range(len(paths[0])):
         goals = [changeBasis(paths[i][j], changeBasisConstants) for i in range(maxD)]
-        goto(goals, 0.05)
+        goto(goals, 0.02)
 
     # Sleep for some time
     delay()
@@ -103,10 +103,11 @@ if __name__ == '__main__':
     else:
         nmap = loadMap(sys.argv[1])
 
-    starts = [(4,1,1),(4,10,1),(3,10,1)]
-    goals = [(3,10,1),(4,1,1),(3,2,1)]
-
+    starts = [(14,1,0),(1,1,0),(1,25,6),(14,25,6)]
+    goals = [(1,25,6),(14,25,6),(14,1,0),(1,1,0)]
+    
     paths = findPaths(starts, goals, nmap)
+    
     bounds = (len(nmap[0][0]), len(nmap[0]), len(nmap))
 
     changeBasisConstants = setConstants(bounds, (3,6,1))

@@ -59,6 +59,21 @@ def findPaths(starts, goals, nmap):
     drones = [Drone(s, g, nmap, amountPaths=amountPathsExplore) for s,g in zip(starts,goals)]
     paths = [d.path for d in drones]
 
+    if amountPathsExplore == 1:
+        tmpPath = findConfigSpaceAndPath(paths)
+        
+        if tmpPath == []:
+            print("None found")
+            return paths
+
+        pathsToFollow = [[] for _ in range(amount)]
+
+        for p in tmpPath:
+            for i,j in enumerate(p[::-1]):
+                pathsToFollow[i].append(paths[i][int(j)])
+        print("Done")
+        return pathsToFollow
+
     bestLen = np.inf
     bestPath = []
     bestPaths = []
