@@ -16,6 +16,9 @@ This repository can then be cloned anywhere and used immediately.
 
 The installation of Terminator (`sudo apt install terminator`) is also highly recommended to keep all the required terminals organized at runtime.
 
+To generate worlds, the folders in the folder `models` should be added to the following folder of Gazebo:
+`~/catkin_ws/src/crazyflie_ros/sim_cf/crazyflie_gazebo/models`
+
 ## Usage
 
 We will denote as `[path]` the path of this repository relative to the home directory of the user. Each one of the following steps will require a new terminal. Much debugging is displayed during loading and at run time so it is not recommended to run them as background tasks.
