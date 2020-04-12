@@ -85,7 +85,6 @@ def checkConfigWall(configSpaces, point):
             if current == 3:
                 count += 1
     if count == ((n*(n-1))//2):
-        print("cc")
         return True
     return False
 
